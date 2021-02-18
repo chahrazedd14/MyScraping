@@ -8,6 +8,14 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
     // récupérer le nom d'utilisateur et supprimer les antislashes ajoutés par le formulaire
     $username = stripslashes($_REQUEST['username']);
     $username = mysqli_real_escape_string($conn, $username);
+
+    $longeurKey = 12;
+    $key = "";
+    for ($i = 1; $i < $longeurKey; $i++) {
+        $key .= rand(0.9);
+    }
+    echo $key;
+
     // récupérer l'email et supprimer les antislashes ajoutés par le formulaire
     $email = stripslashes($_REQUEST['email']);
     $email = mysqli_real_escape_string($conn, $email);
@@ -15,8 +23,8 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
     $password = stripslashes($_REQUEST['password']);
     $password = mysqli_real_escape_string($conn, $password);
     //requéte SQL + mot de passe crypté
-    $query = "INSERT into `users` (username, email, password)
-             VALUES ('$username', '$email', '" . hash('sha256', $password) . "')";
+    $query = "INSERT into `users` (username, email, password ,confirmKey)
+             VALUES ('$username', '$email', '" . hash('sha256', $password, $key) . "')";
     // Exécuter la requête sur la base de données
     $res = mysqli_query($conn, $query);
     if ($res) {
@@ -24,6 +32,8 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
             <h3>Vous êtes inscrit avec succès.</h3>
             <p>Cliquez ici pour vous <a href='login.php'>connecter</a></p>
       </div>";
+    } else {
+        $erreur = "Adresse mail déja utilisé";
     }
 }
 ?>
@@ -33,6 +43,8 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
         <div class="form-container sign-up-container col-8">
             <form class="box" action="" method="post">
                 <h1>Je m'inscrie</h1>
+
+
                 <div class="social-container">
                     <a href="#" class="social"><i class="fa fa-facebook-f"></i></a>
                     <a href="#" class="social"><i class="fa fa-google-plus" aria-hidden="true"></i></i>
@@ -48,15 +60,15 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
         <?php
         session_start();
         if (isset($_POST['email1'])) {
-            $username = stripslashes($_REQUEST['email1']);
-            $username = mysqli_real_escape_string($conn, $username);
+            $email = stripslashes($_REQUEST['email1']);
+            $email = mysqli_real_escape_string($conn, $email);
             $password = stripslashes($_REQUEST['motdepasse']);
             $password = mysqli_real_escape_string($conn, $password);
-            $query = "SELECT * FROM `users` WHERE email='$username' and password='" . hash('sha256', $password) . "'";
+            $query = "SELECT * FROM `users` WHERE email='$email' and password='" . hash('sha256', $password) . "'";
             $result = mysqli_query($conn, $query) or die(mysql_error());
             $rows = mysqli_num_rows($result);
             if ($rows == 1) {
-                $_SESSION['username'] = $username;
+                $_SESSION['username'] = $email;
                 header("Location: dashboard.php");
             } else {
                 $message = "Le nom d'utilisateur ou le mot de passe est incorrect.";
