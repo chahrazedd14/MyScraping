@@ -3,18 +3,17 @@
 <?php ob_start(); ?>
 
 <?php
-require('./model/model.php');
+// require('./model/model.php');
 
-	if (isset($_POST['forminscription'])) 
-    {
+	if(isset($_POST['forminscription'])) {
             $pseudo = $_POST['pseudo'];
-            $mail = htmlspecialchars($_POST['mail']);
+            $mail = $_POST['mail']);
             
             $mdp = sha1($_POST['mdp']);
 
    
-   if(!empty($_POST['pseudo']) AND !empty($_POST['mail'])  AND !empty($_POST['mdp']))
-   {
+        if(!empty($_POST['pseudo']) AND !empty($_POST['mail'])  AND !empty($_POST['mdp']))
+      {
       $pseudolength = strlen($pseudo);
       if($pseudolength <= 20) 
       {
