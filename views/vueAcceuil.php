@@ -3,11 +3,11 @@
 <?php ob_start(); ?>
 
 <?php
-// require('./model/model.php');
+require('./model/model.php');
 
 	if(isset($_POST['forminscription'])) {
             $pseudo = $_POST['pseudo'];
-            $mail = $_POST['mail']);
+            $mail = $_POST['mail'];
             
             $mdp = sha1($_POST['mdp']);
 
