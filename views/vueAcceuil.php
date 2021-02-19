@@ -4,37 +4,84 @@
 
 <?php
 require('./model/model.php');
-if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
-    // récupérer le nom d'utilisateur et supprimer les antislashes ajoutés par le formulaire
-    $username = stripslashes($_REQUEST['username']);
-    $username = mysqli_real_escape_string($conn, $username);
 
-    $longeurKey = 12;
-    $key = "";
-    for ($i = 1; $i < $longeurKey; $i++) {
-        $key .= rand(0.9);
-    }
-    echo $key;
+	if (isset($_POST['forminscription'])) 
+    {
+            $pseudo = $_POST['pseudo'];
+            $mail = htmlspecialchars($_POST['mail']);
+            
+            $mdp = sha1($_POST['mdp']);
 
-    // récupérer l'email et supprimer les antislashes ajoutés par le formulaire
-    $email = stripslashes($_REQUEST['email']);
-    $email = mysqli_real_escape_string($conn, $email);
-    // récupérer le mot de passe et supprimer les antislashes ajoutés par le formulaire
-    $password = stripslashes($_REQUEST['password']);
-    $password = mysqli_real_escape_string($conn, $password);
-    //requéte SQL + mot de passe crypté
-    $query = "INSERT into `users` (username, email, password ,confirmKey)
-             VALUES ('$username', '$email', '" . hash('sha256', $password, $key) . "')";
-    // Exécuter la requête sur la base de données
-    $res = mysqli_query($conn, $query);
-    if ($res) {
-        echo "<div class='sucess'>
-            <h3>Vous êtes inscrit avec succès.</h3>
-            <p>Cliquez ici pour vous <a href='login.php'>connecter</a></p>
-      </div>";
-    } else {
-        $erreur = "Adresse mail déja utilisé";
-    }
+   
+   if(!empty($_POST['pseudo']) AND !empty($_POST['mail'])  AND !empty($_POST['mdp']))
+   {
+      $pseudolength = strlen($pseudo);
+      if($pseudolength <= 20) 
+      {
+         if ($mail ) 
+         {
+            if (filter_var($mail, FILTER_VALIDATE_EMAIL)) 
+            {
+               $reqmail = $bdd->prepare("SELECT * FROM users WHERE mail = ?");
+               $reqmail->execute(array($mail));
+               $mailexist = $reqmail->rowCount();
+               if($mailexist == 0)
+               {
+                  if($mdp)
+                  {
+                     $longueurKey = 13;
+                     $key = "";
+                     for($i=1;$i<$longueurKey;$i++) 
+                     {
+                        $key .= mt_rand(0,9);
+                     }
+                     $insertmbr = $bdd->prepare("INSERT INTO users(pseudo, mail, motdepasse, confirmkey) VALUES(?, ?, ?, ?)");
+                     $insertmbr->execute(array($pseudo, $mail, $mdp, $key));
+                     $header="MIME-Version: 1.0\r\n";
+                     $header.='From:"Fire Wolf"<expediteur@example.com>'."\n";
+                     $header.='Content-Type:text/html; charset="uft-8"'."\n";
+                     $header.='Content-Transfer-Encoding: 8bit';
+                     $message='
+                     <html>
+                        <body>
+                           <div align="center">
+                              <a href="http://localhost/site%20web/Espace%20Membre/Confirmation.php?pseudo='.urlencode($pseudo).'&key='.$key.'">Confirmer votre compte !</a>
+                           </div>
+                        </body>
+                     </html>
+                     ';
+                     mail($mail, "Confirmation de compte !", $message, $header);
+                     $erreur = "Votre compte a bien etait crée ! <a href=\"connection.php\">Me connecter</a>";
+                  }
+                  else
+                  {
+                     $erreur = "Vos mots de passes ne correpondent pas !";
+                  }
+               }
+               else
+               {
+                  $erreur = "Adresse mail déja utilisée !";
+               }
+            }
+            else
+            {
+               $erreur = "Votre adresse mail n'est pas valide !";
+            }
+         }
+         else
+         {
+            $erreur = "Vos adresse mail ne corresponde pas !";
+         }
+      }
+      else
+      {
+         $erreur = "Votre pseudo ne doit pas dépasser 20 caracteres !";
+      }
+   }
+   else
+   {
+      $erreur = "Tous les champs doivent etre complétés !";
+   }
 }
 ?>
 
@@ -51,27 +98,33 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
                         <a href="#" class="social"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
                 </div>
                 <span>ou utilisez votre email pour s'inscrire</span>
-                <input type="text" class="box-input" name="username" placeholder="Nom d'utilisateur" />
-                <input type="text" class="box-input" name="email" placeholder="Email" required />
-                <input type="password" class="box-input" name="password" placeholder="Mot de passe" required />
-                <button>S'incrire</button>
+                <input type="text" class="box-input" name="pseudo" placeholder="Nom d'utilisateur" id="pseudo" />
+                <input type="text" class="box-input" name="mail" placeholder="Email" required id="mail" />
+                <input type="password" class="box-input" name="mdp" placeholder="Mot de passe" required id="mdp" />
+                <button name="forminscription">S'incrire</button>
             </form>
         </div>
         <?php
         session_start();
-        if (isset($_POST['email1'])) {
-            $email = stripslashes($_REQUEST['email1']);
-            $email = mysqli_real_escape_string($conn, $email);
-            $password = stripslashes($_REQUEST['motdepasse']);
-            $password = mysqli_real_escape_string($conn, $password);
-            $query = "SELECT * FROM `users` WHERE email='$email' and password='" . hash('sha256', $password) . "'";
-            $result = mysqli_query($conn, $query) or die(mysql_error());
-            $rows = mysqli_num_rows($result);
-            if ($rows == 1) {
-                $_SESSION['username'] = $email;
-                header("Location: dashboard.php");
+
+        if (isset($_POST['formconnexion'])) {
+            $mailconnect = htmlspecialchars($_POST['mailconnect']);
+            $mdpconnect = sha1($_POST['mdpconnect']);
+            if (!empty($mailconnect) and !empty($mdpconnect)) {
+                $requser = $bdd->prepare("SELECT * FROM users WHERE mail = ? AND motdepasse = ?");
+                $requser->execute(array($mailconnect, $mdpconnect));
+                $userexist = $requser->rowCount();
+                if ($userexist == 1) {
+                    $userinfo = $requser->fetch();
+                    $_SESSION['id'] = $userinfo['id'];
+                    $_SESSION['pseudo'] = $userinfo['pseudo'];
+                    $_SESSION['mail'] = $userinfo['mail'];
+                    header("Location: dashborad.php?id=" . $_SESSION['id']);
+                } else {
+                    $erreur = "Mauvais mail ou mot de passe !";
+                }
             } else {
-                $message = "Le nom d'utilisateur ou le mot de passe est incorrect.";
+                $erreur = "Tous les champs doivent être complétés !";
             }
         }
         ?>
@@ -83,11 +136,11 @@ if (isset($_REQUEST['username'], $_REQUEST['email'], $_REQUEST['password'])) {
                     <a href="#" class="social"><i class="fa fa-google-plus" aria-hidden="true"></i></i>
                         <a href="#" class="social"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
                 </div>
-                <span>or use your account</span>
-                <input name="email1" type="email" placeholder="Email" required />
-                <input name="motdepasse" type="password" placeholder="Mot de passe" required />
+                <span>Vous avez un compte</span>
+                <input name="mailconnect" type="email" placeholder="mail" required id="mailconnect" required />
+                <input name="mdpconnect" type="password" placeholder="Mot de passe" required id="mdpconnect" />
                 <a href="#">Mot de passe oublié?</a>
-                <button>Se connecter</button>
+                <button name="formconnexion">Se connecter</button>
                 <?php
                 if (!empty($message)) {
                     echo $message;

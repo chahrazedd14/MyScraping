@@ -169,7 +169,7 @@ if (!isset($_SESSION["username"])) {
                             <img alt="Profile picture preview" class="imagePreview">
                             <button class="action-button mode-upload">Upload avatar</button>
 
-                            <h3><?php echo $_SESSION['username']; ?></h3>
+                            <h3><?php echo $_SESSION['pseudo']; ?></h3>
 
                             <div class="button action-button mode-upload">
                                 <label for="lol"><i class="fa fa-camera" aria-hidden="true"></i></label>
@@ -264,11 +264,23 @@ if (!isset($_SESSION["username"])) {
                                         <label class="title py-3" for="toggle1" id=" elementExtrait">Elements à extraire
                                     </label>
                                     <div class="content">
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                                            tempor incididunt
-                                            ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                                            exercitation
-                                            ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+
+                                        <div class="row">
+                                            <div class="col-12"></div>
+                                            <label>
+                                                <input type="checkbox" class="option-input checkbox" checked />
+                                                Checkbox
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="option-input checkbox" />
+                                                Checkbox
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" class="option-input checkbox" />
+                                                Checkbox
+                                            </label>
+                                        </div>
+
                                     </div>
                                 </div>
 
